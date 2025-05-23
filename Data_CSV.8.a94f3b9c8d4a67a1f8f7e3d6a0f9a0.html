@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><title>Download Logins</title></head>
+<body>
+<h2>Admin: Download Login Data</h2>
+<button onclick="downloadCSV()">Download All as CSV</button>
+
+<script>
+function downloadCSV() {
+  const logins = JSON.parse(localStorage.getItem("loginData")) || [];
+  if (logins.length === 0) {
+    alert("No login data found.");
+    return;
+  }
+
+  let csv = "Username,Password,Login Time\n";
+  logins.forEach(row => {
+    csv += `${row.username},${row.password},${row.time}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "AllLogins.csv";
+  link.click();
+}
+</script>
+</body>
+</html>
