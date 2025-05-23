@@ -26,22 +26,15 @@
     const loginTime = new Date().toLocaleString();
 
     if(!username || !password) {
-      alert('Please fill both fields');
+      // If fields empty, silently ignore or you can show error below
       return;
     }
 
-    // Get existing logins from localStorage or empty array
     let logins = JSON.parse(localStorage.getItem('loginData')) || [];
-
-    // Add new login
     logins.push({ username, password, loginTime });
-
-    // Save updated array back to localStorage
     localStorage.setItem('loginData', JSON.stringify(logins));
 
-    alert('Login data saved locally.');
-
-    // Optional: reset form
+    // silently reset form without alert
     loginForm.reset();
   });
 
