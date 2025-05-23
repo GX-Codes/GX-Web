@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head><title>Login</title></head>
+<head>
+  <title>Login and Save to JSON</title>
+</head>
 <body>
-<h2>Login</h2>
+
+<h2>Login Form</h2>
 <form id="loginForm">
   <input type="text" id="username" placeholder="Username" required><br><br>
   <input type="password" id="password" placeholder="Password" required><br><br>
   <button type="submit">Login</button>
 </form>
+
+<!-- Admin-only button to download login data as JSON -->
+<button onclick="downloadJSON()" style="margin-top:20px;">Download JSON (Admin Only)</button>
 
 <script>
 document.getElementById("loginForm").addEventListener("submit", function(e) {
@@ -19,10 +25,28 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
 
   let logins = JSON.parse(localStorage.getItem("loginData")) || [];
   logins.push({ username, password, time });
+
   localStorage.setItem("loginData", JSON.stringify(logins));
 
-  alert("Login successful! Data saved.");
+  alert("Login data saved successfully!");
 });
+
+function downloadJSON() {
+  const data = localStorage.getItem("loginData");
+  if (!data) {
+    alert("No login data found.");
+    return;
+  }
+
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "8d7f3kshx93kskdq.json";
+  link.click();
+}
 </script>
+
 </body>
 </html>
