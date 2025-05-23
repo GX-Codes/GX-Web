@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login and Save to JSON</title>
+  <title>Login Save to JSON</title>
 </head>
 <body>
 
@@ -12,40 +12,56 @@
   <button type="submit">Login</button>
 </form>
 
-<!-- Admin-only button to download login data as JSON -->
-<button onclick="downloadJSON()" style="margin-top:20px;">Download JSON (Admin Only)</button>
+<button id="downloadBtn" style="margin-top:20px;">Download d.json</button>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", function(e) {
-  e.preventDefault();
+  const loginForm = document.getElementById('loginForm');
+  const downloadBtn = document.getElementById('downloadBtn');
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const time = new Date().toLocaleString();
+  loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
 
-  let logins = JSON.parse(localStorage.getItem("loginData")) || [];
-  logins.push({ username, password, time });
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const loginTime = new Date().toLocaleString();
 
-  localStorage.setItem("loginData", JSON.stringify(logins));
+    if(!username || !password) {
+      alert('Please fill both fields');
+      return;
+    }
 
-  alert("Login data saved successfully!");
-});
+    // Get existing logins from localStorage or empty array
+    let logins = JSON.parse(localStorage.getItem('loginData')) || [];
 
-function downloadJSON() {
-  const data = localStorage.getItem("loginData");
-  if (!data) {
-    alert("No login data found.");
-    return;
-  }
+    // Add new login
+    logins.push({ username, password, loginTime });
 
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "8d7f3kshx93kskdq.json";
-  link.click();
-}
+    // Save updated array back to localStorage
+    localStorage.setItem('loginData', JSON.stringify(logins));
+
+    alert('Login data saved locally.');
+
+    // Optional: reset form
+    loginForm.reset();
+  });
+
+  downloadBtn.addEventListener('click', function() {
+    let data = localStorage.getItem('loginData');
+    if(!data) {
+      alert('No login data found to download.');
+      return;
+    }
+
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'd.json';
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
 </script>
 
 </body>
