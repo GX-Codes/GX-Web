@@ -1,1 +1,38 @@
-<h1>Hello</h1>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login to Excel</title>
+</head>
+<body>
+
+<h2>Login Form</h2>
+<form id="loginForm">
+  <input type="text" id="username" placeholder="Username" required><br><br>
+  <input type="password" id="password" placeholder="Password" required><br><br>
+  <button type="submit">Login</button>
+</form>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const loginTime = new Date().toLocaleString();
+
+  const csvContent = `Username,Password,Login Time\n${username},${password},${loginTime}`;
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "LoginData.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+</script>
+
+</body>
+</html>
