@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Iron Man Hand Control – Fixed Orientation</title>
+  <title>Iron Man Perfect Hand Control</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -68,15 +68,22 @@
 
         // Use index finger tip (landmark 8)
         const finger = landmarks[8];
-        const x = finger.x * canvas.width - 50;
-        const y = finger.y * canvas.height - 50;
+        const fingerX = finger.x * canvas.width;
+        const fingerY = finger.y * canvas.height;
 
-        // Move object to finger position
+        // Get object size
+        const objectWidth = object.offsetWidth;
+        const objectHeight = object.offsetHeight;
+
+        // Center object on finger
+        const x = fingerX - objectWidth / 2;
+        const y = fingerY - objectHeight / 2;
+
         object.style.transform = `translate(${x}px, ${y}px)`;
 
-        // Draw red dot on fingertip
+        // Draw red dot
         ctx.beginPath();
-        ctx.arc(finger.x * canvas.width, finger.y * canvas.height, 6, 0, 2 * Math.PI);
+        ctx.arc(fingerX, fingerY, 6, 0, 2 * Math.PI);
         ctx.fillStyle = "red";
         ctx.fill();
       }
