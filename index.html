@@ -2,33 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hand-Controlled Zoom & Move</title>
+  <title>Pro Hand Control</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
   <style>
     body {
       display: flex;
-      font-family: sans-serif;
-      background: #f0f0f0;
+      background-color: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
     }
     .left, .right {
       position: relative;
     }
     video, canvas {
+      position: absolute;
       width: 640px;
       height: 480px;
-      transform: scaleX(-1); /* Mirror camera */
+      transform: scaleX(-1); /* Mirror */
     }
-    #bodyBox {
-      width: 100px;
-      height: 100px;
-      background: blue;
+    #object {
       position: absolute;
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(45deg, #00f2ff, #0088ff);
+      border-radius: 20px;
+      transition: transform 0.1s ease;
       top: 180px;
       left: 100px;
-      border-radius: 10px;
-      transition: transform 0.1s;
+      box-shadow: 0 0 15px #00e0ff;
     }
   </style>
 </head>
@@ -38,19 +41,20 @@
     <canvas id="canvas"></canvas>
   </div>
   <div class="right" style="width: 640px; height: 480px;">
-    <div id="bodyBox"></div>
+    <div id="object"></div>
   </div>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const bodyBox = document.getElementById('bodyBox');
+    const object = document.getElementById('object');
     canvas.width = 640;
     canvas.height = 480;
 
     let scale = 1;
     let posX = 100;
+    let prevX = 100;
 
     const hands = new Hands({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
@@ -59,51 +63,48 @@
     hands.setOptions({
       maxNumHands: 1,
       modelComplexity: 1,
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.7,
+      minDetectionConfidence: 0.8,
+      minTrackingConfidence: 0.8,
     });
 
     hands.onResults((results) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
 
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const landmarks = results.multiHandLandmarks[0];
+      if (results.multiHandLandmarks.length > 0) {
+        const lm = results.multiHandLandmarks[0];
 
-        // Calculate distance between thumb tip (4) and index tip (8)
-        const thumb = landmarks[4];
-        const index = landmarks[8];
+        // Get thumb tip (4) and index tip (8) for zoom
+        const thumb = lm[4];
+        const index = lm[8];
+        const palm = lm[0];
 
         const dist = Math.hypot(
           (thumb.x - index.x) * canvas.width,
           (thumb.y - index.y) * canvas.height
         );
 
-        // Use distance to scale box
-        if (dist > 80) {
-          scale += 0.02;
-        } else if (dist < 40) {
-          scale -= 0.02;
-        }
+        // Zoom logic
+        const zoomAmount = (dist - 60) / 200;
+        scale += zoomAmount;
+        scale = Math.max(0.5, Math.min(2.5, scale));
 
-        scale = Math.max(0.5, Math.min(2, scale));
+        // Move object left/right
+        const targetX = palm.x * 400; // 0 to 400px range
+        posX = posX + (targetX - posX) * 0.1; // smooth move
 
-        // Use palm center (landmark 0) to move box horizontally
-        const palm = landmarks[0];
-        posX = palm.x * 300; // max 300px right
+        // Update UI
+        object.style.transform = `translateX(${posX}px) scale(${scale})`;
 
-        // Apply transform
-        bodyBox.style.transform = `translateX(${posX}px) scale(${scale})`;
-
-        // Optionally draw landmarks
-        for (let i = 0; i < landmarks.length; i++) {
-          const x = landmarks[i].x * canvas.width;
-          const y = landmarks[i].y * canvas.height;
+        // Optional: draw fingertip dots
+        [4, 8, 12, 16, 20].forEach(i => {
+          const x = lm[i].x * canvas.width;
+          const y = lm[i].y * canvas.height;
           ctx.beginPath();
-          ctx.arc(x, y, 5, 0, 2 * Math.PI);
-          ctx.fillStyle = 'red';
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = "#00ffff";
           ctx.fill();
-        }
+        });
       }
     });
 
