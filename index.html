@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Iron Man Perfect Hand Control</title>
+  <title>Perfect Hand Pointer - Iron Man Style</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -23,10 +23,9 @@
     }
     #object {
       position: absolute;
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       background: url('https://cdn-icons-png.flaticon.com/512/847/847969.png') no-repeat center/contain;
-      transition: transform 0.05s linear;
       pointer-events: none;
     }
   </style>
@@ -65,21 +64,16 @@
 
       if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
-
-        // Use index finger tip (landmark 8)
-        const finger = landmarks[8];
+        const finger = landmarks[8]; // Index fingertip
         const fingerX = finger.x * canvas.width;
         const fingerY = finger.y * canvas.height;
 
-        // Get object size
+        // Center object exactly on fingertip
         const objectWidth = object.offsetWidth;
         const objectHeight = object.offsetHeight;
 
-        // Center object on finger
-        const x = fingerX - objectWidth / 2;
-        const y = fingerY - objectHeight / 2;
-
-        object.style.transform = `translate(${x}px, ${y}px)`;
+        object.style.left = `${fingerX - objectWidth / 2}px`;
+        object.style.top = `${fingerY - objectHeight / 2}px`;
 
         // Draw red dot
         ctx.beginPath();
