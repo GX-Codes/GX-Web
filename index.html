@@ -2,31 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Finger Tips Tracker</title>
+  <title>Hand-Controlled Zoom & Move</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
   <style>
+    body {
+      display: flex;
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+    .left, .right {
+      position: relative;
+    }
     video, canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 640px;
       height: 480px;
       transform: scaleX(-1); /* Mirror camera */
     }
+    #bodyBox {
+      width: 100px;
+      height: 100px;
+      background: blue;
+      position: absolute;
+      top: 180px;
+      left: 100px;
+      border-radius: 10px;
+      transition: transform 0.1s;
+    }
   </style>
 </head>
 <body>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas"></canvas>
+  <div class="left">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
+  <div class="right" style="width: 640px; height: 480px;">
+    <div id="bodyBox"></div>
+  </div>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const bodyBox = document.getElementById('bodyBox');
     canvas.width = 640;
     canvas.height = 480;
+
+    let scale = 1;
+    let posX = 100;
 
     const hands = new Hands({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
@@ -46,20 +70,40 @@
       if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
 
-        const fingertipIndices = [4, 8, 12, 16, 20]; // All 5 fingertips
+        // Calculate distance between thumb tip (4) and index tip (8)
+        const thumb = landmarks[4];
+        const index = landmarks[8];
 
-        fingertipIndices.forEach(index => {
-          const tip = landmarks[index];
-          const x = tip.x * canvas.width;
-          const y = tip.y * canvas.height;
+        const dist = Math.hypot(
+          (thumb.x - index.x) * canvas.width,
+          (thumb.y - index.y) * canvas.height
+        );
 
+        // Use distance to scale box
+        if (dist > 80) {
+          scale += 0.02;
+        } else if (dist < 40) {
+          scale -= 0.02;
+        }
+
+        scale = Math.max(0.5, Math.min(2, scale));
+
+        // Use palm center (landmark 0) to move box horizontally
+        const palm = landmarks[0];
+        posX = palm.x * 300; // max 300px right
+
+        // Apply transform
+        bodyBox.style.transform = `translateX(${posX}px) scale(${scale})`;
+
+        // Optionally draw landmarks
+        for (let i = 0; i < landmarks.length; i++) {
+          const x = landmarks[i].x * canvas.width;
+          const y = landmarks[i].y * canvas.height;
           ctx.beginPath();
-          ctx.arc(x, y, 10, 0, 2 * Math.PI);
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
           ctx.fillStyle = 'red';
           ctx.fill();
-          ctx.strokeStyle = 'black';
-          ctx.stroke();
-        });
+        }
       }
     });
 
