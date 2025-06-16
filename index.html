@@ -1,58 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Hand Tracking</title>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-  <style>
-    video, canvas {
-      position: absolute;
-      left: 0;
-      top: 0;
-      transform: scaleX(-1); /* Mirror view */
-    }
-  </style>
+  <title>Camera Test</title>
 </head>
 <body>
+  <h2>Webcam Preview</h2>
   <video id="video" width="640" height="480" autoplay></video>
-  <canvas id="canvas" width="640" height="480"></canvas>
 
   <script>
-    const videoElement = document.getElementById('video');
-    const canvasElement = document.getElementById('canvas');
-    const canvasCtx = canvasElement.getContext('2d');
+    const video = document.getElementById('video');
 
-    const hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-    });
-
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.8,
-      minTrackingConfidence: 0.5
-    });
-
-    hands.onResults(results => {
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-      if (results.multiHandLandmarks) {
-        for (const landmarks of results.multiHandLandmarks) {
-          drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
-          drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
-        }
-      }
-    });
-
-    const camera = new Camera(videoElement, {
-      onFrame: async () => {
-        await hands.send({image: videoElement});
-      },
-      width: 640,
-      height: 480
-    });
-    camera.start();
+    // Check for browser support
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          video.srcObject = stream;
+        })
+        .catch((err) => {
+          console.error('Camera access error:', err);
+          alert("Camera access failed: " + err.message);
+        });
+    } else {
+      alert("Your browser does not support camera access.");
+    }
   </script>
 </body>
 </html>
