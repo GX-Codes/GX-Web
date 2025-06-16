@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Finger Ball Tracker</title>
+  <title>Finger Tips Tracker</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
@@ -46,18 +46,20 @@
       if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
 
-        // Index finger tip = landmark 8
-        const fingerTip = landmarks[8];
-        const x = fingerTip.x * canvas.width;
-        const y = fingerTip.y * canvas.height;
+        const fingertipIndices = [4, 8, 12, 16, 20]; // All 5 fingertips
 
-        // Draw ball (circle) at index finger tip
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-        ctx.strokeStyle = 'black';
-        ctx.stroke();
+        fingertipIndices.forEach(index => {
+          const tip = landmarks[index];
+          const x = tip.x * canvas.width;
+          const y = tip.y * canvas.height;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, 2 * Math.PI);
+          ctx.fillStyle = 'red';
+          ctx.fill();
+          ctx.strokeStyle = 'black';
+          ctx.stroke();
+        });
       }
     });
 
