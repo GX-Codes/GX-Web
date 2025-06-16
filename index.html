@@ -1,61 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login Save to JSON</title>
+  <title>Hand Tracking</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <style>
+    video, canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: scaleX(-1); /* Mirror view */
+    }
+  </style>
 </head>
 <body>
+  <video id="video" width="640" height="480" autoplay></video>
+  <canvas id="canvas" width="640" height="480"></canvas>
 
-<h2>Login Form</h2>
-<form id="loginForm">
-  <input type="text" id="username" placeholder="Username" required><br><br>
-  <input type="password" id="password" placeholder="Password" required><br><br>
-  <button type="submit">Login</button>
-</form>
+  <script>
+    const videoElement = document.getElementById('video');
+    const canvasElement = document.getElementById('canvas');
+    const canvasCtx = canvasElement.getContext('2d');
 
-<button id="downloadBtn" style="margin-top:20px;">Download d.json</button>
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
 
-<script>
-  const loginForm = document.getElementById('loginForm');
-  const downloadBtn = document.getElementById('downloadBtn');
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.8,
+      minTrackingConfidence: 0.5
+    });
 
-  loginForm.addEventListener('submit', function(e) {
-    e.preventDefault();
+    hands.onResults(results => {
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+      if (results.multiHandLandmarks) {
+        for (const landmarks of results.multiHandLandmarks) {
+          drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: '#00FF00', lineWidth: 2});
+          drawLandmarks(canvasCtx, landmarks, {color: '#FF0000', lineWidth: 1});
+        }
+      }
+    });
 
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const loginTime = new Date().toLocaleString();
-
-    if(!username || !password) {
-      // If fields empty, silently ignore or you can show error below
-      return;
-    }
-
-    let logins = JSON.parse(localStorage.getItem('loginData')) || [];
-    logins.push({ username, password, loginTime });
-    localStorage.setItem('loginData', JSON.stringify(logins));
-
-    // silently reset form without alert
-    loginForm.reset();
-  });
-
-  downloadBtn.addEventListener('click', function() {
-    let data = localStorage.getItem('loginData');
-    if(!data) {
-      alert('No login data found to download.');
-      return;
-    }
-
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'd.json';
-    a.click();
-
-    URL.revokeObjectURL(url);
-  });
-</script>
-
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await hands.send({image: videoElement});
+      },
+      width: 640,
+      height: 480
+    });
+    camera.start();
+  </script>
 </body>
 </html>
