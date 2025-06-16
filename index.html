@@ -1,28 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Camera Test</title>
+  <meta charset="UTF-8">
+  <title>Webcam Test</title>
+  <style>
+    video {
+      width: 100%;
+      max-width: 640px;
+      border: 2px solid black;
+    }
+  </style>
 </head>
 <body>
-  <h2>Webcam Preview</h2>
-  <video id="video" width="640" height="480" autoplay></video>
+  <h1>Webcam Preview</h1>
+  <video id="video" autoplay playsinline></video>
 
   <script>
     const video = document.getElementById('video');
 
-    // Check for browser support
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-          video.srcObject = stream;
-        })
-        .catch((err) => {
-          console.error('Camera access error:', err);
-          alert("Camera access failed: " + err.message);
-        });
-    } else {
-      alert("Your browser does not support camera access.");
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error("Camera error:", err);
+        alert("Camera access failed: " + err.message);
+      }
     }
+
+    startCamera();
   </script>
 </body>
 </html>
