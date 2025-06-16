@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pro Hand Control</title>
+  <title>Hand Control with Object</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
   <style>
     body {
       display: flex;
-      background-color: #111;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      background-color: white;
+      font-family: sans-serif;
     }
     .left, .right {
       position: relative;
@@ -20,18 +19,16 @@
       position: absolute;
       width: 640px;
       height: 480px;
-      transform: scaleX(-1); /* Mirror */
+      transform: scaleX(-1); /* Mirror camera */
+      border: 2px solid #ccc;
     }
     #object {
       position: absolute;
       width: 120px;
       height: 120px;
-      background: linear-gradient(45deg, #00f2ff, #0088ff);
-      border-radius: 20px;
-      transition: transform 0.1s ease;
       top: 180px;
       left: 100px;
-      box-shadow: 0 0 15px #00e0ff;
+      transition: transform 0.1s ease;
     }
   </style>
 </head>
@@ -41,7 +38,8 @@
     <canvas id="canvas"></canvas>
   </div>
   <div class="right" style="width: 640px; height: 480px;">
-    <div id="object"></div>
+    <!-- ✅ Replace this image with your own object -->
+    <img id="object" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Controlled Object" />
   </div>
 
   <script>
@@ -54,7 +52,6 @@
 
     let scale = 1;
     let posX = 100;
-    let prevX = 100;
 
     const hands = new Hands({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
@@ -74,11 +71,12 @@
       if (results.multiHandLandmarks.length > 0) {
         const lm = results.multiHandLandmarks[0];
 
-        // Get thumb tip (4) and index tip (8) for zoom
+        // Get thumb tip (4) and index tip (8)
         const thumb = lm[4];
         const index = lm[8];
         const palm = lm[0];
 
+        // Distance between thumb and index
         const dist = Math.hypot(
           (thumb.x - index.x) * canvas.width,
           (thumb.y - index.y) * canvas.height
@@ -89,20 +87,20 @@
         scale += zoomAmount;
         scale = Math.max(0.5, Math.min(2.5, scale));
 
-        // Move object left/right
-        const targetX = palm.x * 400; // 0 to 400px range
-        posX = posX + (targetX - posX) * 0.1; // smooth move
+        // Move left/right
+        const targetX = palm.x * 400;
+        posX = posX + (targetX - posX) * 0.1;
 
-        // Update UI
+        // Apply transform
         object.style.transform = `translateX(${posX}px) scale(${scale})`;
 
-        // Optional: draw fingertip dots
+        // Red dots on fingertips
         [4, 8, 12, 16, 20].forEach(i => {
           const x = lm[i].x * canvas.width;
           const y = lm[i].y * canvas.height;
           ctx.beginPath();
           ctx.arc(x, y, 6, 0, 2 * Math.PI);
-          ctx.fillStyle = "#00ffff";
+          ctx.fillStyle = "red";
           ctx.fill();
         });
       }
