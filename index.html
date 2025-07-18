@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Robot Eye</title>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iron Man Robot Eye</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      background-color: black;
     }
     video, canvas {
       position: absolute;
@@ -17,9 +18,21 @@
       height: 100vh;
       object-fit: cover;
     }
+    .hud-text {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: monospace;
+      color: cyan;
+      font-size: 20px;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 8px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
+  <div class="hud-text">👁️ Eye Tracking System - Iron HUD</div>
   <video class="input_video" autoplay muted playsinline></video>
   <canvas class="output_canvas"></canvas>
 
@@ -28,8 +41,17 @@
     const canvasElement = document.querySelector('.output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
 
+    const speak = (text) => {
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.rate = 1;
+      msg.pitch = 1;
+      msg.volume = 1;
+      window.speechSynthesis.speak(msg);
+    };
+
     const faceMesh = new FaceMesh({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+      locateFile: (file) =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
     });
 
     faceMesh.setOptions({
@@ -39,40 +61,49 @@
       minTrackingConfidence: 0.5
     });
 
-    faceMesh.onResults(results => {
+    let spoke = false;
+
+    faceMesh.onResults((results) => {
       canvasElement.width = videoElement.videoWidth;
       canvasElement.height = videoElement.videoHeight;
-
-      canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
       canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
       if (results.multiFaceLandmarks) {
+        if (!spoke) {
+          speak("Target acquired. Tracking eyes.");
+          spoke = true;
+        }
+
         for (const landmarks of results.multiFaceLandmarks) {
-          // Left eye (133 to 144)
-          for (let i = 133; i <= 144; i++) {
-            const pt = landmarks[i];
-            const x = pt.x * canvasElement.width;
-            const y = pt.y * canvasElement.height;
-            canvasCtx.beginPath();
-            canvasCtx.arc(x, y, 2, 0, 2 * Math.PI);
-            canvasCtx.fillStyle = "lime";
-            canvasCtx.fill();
-          }
-          // Right eye (362 to 373)
-          for (let i = 362; i <= 373; i++) {
-            const pt = landmarks[i];
-            const x = pt.x * canvasElement.width;
-            const y = pt.y * canvasElement.height;
-            canvasCtx.beginPath();
-            canvasCtx.arc(x, y, 2, 0, 2 * Math.PI);
-            canvasCtx.fillStyle = "red";
-            canvasCtx.fill();
-          }
+          // Draw eye dots
+          const drawEye = (range, color) => {
+            for (let i = range[0]; i <= range[1]; i++) {
+              const pt = landmarks[i];
+              const x = pt.x * canvasElement.width;
+              const y = pt.y * canvasElement.height;
+              canvasCtx.beginPath();
+              canvasCtx.arc(x, y, 3, 0, 2 * Math.PI);
+              canvasCtx.fillStyle = color;
+              canvasCtx.shadowBlur = 4;
+              canvasCtx.shadowColor = color;
+              canvasCtx.fill();
+            }
+          };
+          drawEye([133, 144], 'cyan'); // Left Eye
+          drawEye([362, 373], 'red');  // Right Eye
+
+          // Draw sci-fi target circle
+          const center = landmarks[1];
+          const cx = center.x * canvasElement.width;
+          const cy = center.y * canvasElement.height;
+          canvasCtx.beginPath();
+          canvasCtx.arc(cx, cy, 40, 0, 2 * Math.PI);
+          canvasCtx.strokeStyle = 'rgba(0,255,255,0.5)';
+          canvasCtx.lineWidth = 2;
+          canvasCtx.stroke();
         }
       }
-
-      canvasCtx.restore();
     });
 
     const camera = new Camera(videoElement, {
@@ -82,7 +113,6 @@
       width: 640,
       height: 480
     });
-
     camera.start();
   </script>
 </body>
