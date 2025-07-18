@@ -2,12 +2,13 @@
 <html>
 <head>
   <title>Robot Eye</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <style>
-    * {
+    body {
       margin: 0;
-      padding: 0;
       overflow: hidden;
     }
     video, canvas {
@@ -19,7 +20,7 @@
   </style>
 </head>
 <body>
-  <video class="input_video" autoplay muted></video>
+  <video class="input_video" autoplay muted playsinline></video>
   <canvas class="output_canvas"></canvas>
 
   <script>
@@ -28,9 +29,7 @@
     const canvasCtx = canvasElement.getContext('2d');
 
     const faceMesh = new FaceMesh({
-      locateFile: (file) => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-      }
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
     });
 
     faceMesh.setOptions({
@@ -50,23 +49,24 @@
 
       if (results.multiFaceLandmarks) {
         for (const landmarks of results.multiFaceLandmarks) {
-          // Left eye (points 133–144)
+          // Left eye (133 to 144)
           for (let i = 133; i <= 144; i++) {
-            const x = landmarks[i].x * canvasElement.width;
-            const y = landmarks[i].y * canvasElement.height;
+            const pt = landmarks[i];
+            const x = pt.x * canvasElement.width;
+            const y = pt.y * canvasElement.height;
             canvasCtx.beginPath();
             canvasCtx.arc(x, y, 2, 0, 2 * Math.PI);
-            canvasCtx.fillStyle = 'lime';
+            canvasCtx.fillStyle = "lime";
             canvasCtx.fill();
           }
-
-          // Right eye (points 362–373)
+          // Right eye (362 to 373)
           for (let i = 362; i <= 373; i++) {
-            const x = landmarks[i].x * canvasElement.width;
-            const y = landmarks[i].y * canvasElement.height;
+            const pt = landmarks[i];
+            const x = pt.x * canvasElement.width;
+            const y = pt.y * canvasElement.height;
             canvasCtx.beginPath();
             canvasCtx.arc(x, y, 2, 0, 2 * Math.PI);
-            canvasCtx.fillStyle = 'red';
+            canvasCtx.fillStyle = "red";
             canvasCtx.fill();
           }
         }
