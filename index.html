@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Robot Eye in HTML</title>
+  <title>Robot Eye</title>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
     video, canvas {
       position: absolute;
       width: 100vw;
@@ -14,7 +19,7 @@
   </style>
 </head>
 <body>
-  <video class="input_video" autoplay></video>
+  <video class="input_video" autoplay muted></video>
   <canvas class="output_canvas"></canvas>
 
   <script>
@@ -45,7 +50,7 @@
 
       if (results.multiFaceLandmarks) {
         for (const landmarks of results.multiFaceLandmarks) {
-          // Draw left eye points
+          // Left eye (points 133–144)
           for (let i = 133; i <= 144; i++) {
             const x = landmarks[i].x * canvasElement.width;
             const y = landmarks[i].y * canvasElement.height;
@@ -54,7 +59,8 @@
             canvasCtx.fillStyle = 'lime';
             canvasCtx.fill();
           }
-          // Draw right eye points
+
+          // Right eye (points 362–373)
           for (let i = 362; i <= 373; i++) {
             const x = landmarks[i].x * canvasElement.width;
             const y = landmarks[i].y * canvasElement.height;
@@ -65,16 +71,18 @@
           }
         }
       }
+
       canvasCtx.restore();
     });
 
     const camera = new Camera(videoElement, {
       onFrame: async () => {
-        await faceMesh.send({image: videoElement});
+        await faceMesh.send({ image: videoElement });
       },
       width: 640,
       height: 480
     });
+
     camera.start();
   </script>
 </body>
